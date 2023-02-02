@@ -230,7 +230,7 @@ static esp_err_t capture_handler(httpd_req_t *req){
     httpd_resp_set_type(req, "image/jpeg");
     httpd_resp_set_hdr(req, "Content-Disposition", "inline; filename=capture.jpg");
     httpd_resp_set_hdr(req, "Access-Control-Allow-Origin", "*");
-
+digitalWrite(4, HIGH);
     size_t out_len, out_width, out_height;
     uint8_t * out_buf;
     bool s;
@@ -250,6 +250,7 @@ static esp_err_t capture_handler(httpd_req_t *req){
         esp_camera_fb_return(fb);
         int64_t fr_end = esp_timer_get_time();
         Serial.printf("JPG: %uB %ums\n", (uint32_t)(fb_len), (uint32_t)((fr_end - fr_start)/1000));
+        digitalWrite(4, LOW);
         return res;
     }
 
@@ -258,6 +259,7 @@ static esp_err_t capture_handler(httpd_req_t *req){
         esp_camera_fb_return(fb);
         Serial.println("dl_matrix3du_alloc failed");
         httpd_resp_send_500(req);
+        digitalWrite(4, LOW);
         return ESP_FAIL;
     }
 
@@ -272,6 +274,7 @@ static esp_err_t capture_handler(httpd_req_t *req){
         dl_matrix3du_free(image_matrix);
         Serial.println("to rgb888 failed");
         httpd_resp_send_500(req);
+        digitalWrite(4, LOW);
         return ESP_FAIL;
     }
 
@@ -294,11 +297,13 @@ static esp_err_t capture_handler(httpd_req_t *req){
     dl_matrix3du_free(image_matrix);
     if(!s){
         Serial.println("JPEG compression failed");
+        digitalWrite(4, LOW);
         return ESP_FAIL;
     }
 
     int64_t fr_end = esp_timer_get_time();
     Serial.printf("FACE: %uB %ums %s%d\n", (uint32_t)(jchunk.len), (uint32_t)((fr_end - fr_start)/1000), detected?"DETECTED ":"", face_id);
+    digitalWrite(4, LOW);
     return res;
 }
 
